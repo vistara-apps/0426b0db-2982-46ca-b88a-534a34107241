@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Bell, FileText, Share2, Menu, X } from 'lucide-react';
+import { Activity, Bell, FileText, Share2, Menu, X, Crown } from 'lucide-react';
 import { ConnectWallet, Wallet } from '@coinbase/onchainkit/wallet';
 import { Name } from '@coinbase/onchainkit/identity';
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
@@ -18,6 +18,7 @@ const tabs = [
   { id: 'reminders', label: 'Reminders', icon: Bell },
   { id: 'records', label: 'Records', icon: FileText },
   { id: 'summary', label: 'Summary', icon: Share2 },
+  { id: 'premium', label: 'Premium', icon: Crown },
 ];
 
 export function AppShell({ children, activeTab, onTabChange }: AppShellProps) {

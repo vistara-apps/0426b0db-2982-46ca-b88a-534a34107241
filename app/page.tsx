@@ -6,6 +6,7 @@ import { HealthInputForm } from '@/components/HealthInputForm';
 import { HealthRecordCard } from '@/components/HealthRecordCard';
 import { TimelineChart } from '@/components/TimelineChart';
 import { NotificationBanner } from '@/components/NotificationBanner';
+import { PremiumFeatures } from '@/components/PremiumFeatures';
 import { 
   Activity, 
   Plus, 
@@ -39,6 +40,7 @@ export default function HealthSyncApp() {
   const [showSymptomForm, setShowSymptomForm] = useState(false);
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [reminderType, setReminderType] = useState<'medication' | 'appointment'>('medication');
+  const [enabledFeatures, setEnabledFeatures] = useState<string[]>([]);
   const [notification, setNotification] = useState<{
     variant: 'info' | 'warning' | 'success' | 'error';
     title: string;
@@ -140,6 +142,14 @@ export default function HealthSyncApp() {
       console.error('Failed to delete reminder:', error);
       showNotification('error', 'Error', 'Failed to delete reminder');
     }
+  };
+
+  const handleFeatureEnabled = (featureId: string, transactionHash: string) => {
+    setEnabledFeatures(prev => [...prev, featureId]);
+    showNotification('success', 'Premium Feature Unlocked!', `${featureId.replace('_', ' ')} is now available`);
+    
+    // In production, you would save this to your backend/storage
+    console.log(`Feature ${featureId} enabled with transaction: ${transactionHash}`);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -700,6 +710,13 @@ export default function HealthSyncApp() {
     </div>
   );
 
+  const renderPremium = () => (
+    <PremiumFeatures
+      enabledFeatures={enabledFeatures}
+      onFeatureEnabled={handleFeatureEnabled}
+    />
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -712,6 +729,8 @@ export default function HealthSyncApp() {
         return renderRecords();
       case 'summary':
         return renderSummary();
+      case 'premium':
+        return renderPremium();
       default:
         return renderDashboard();
     }

@@ -106,3 +106,26 @@ export interface TrendData {
   data: ChartDataPoint[];
   color: string;
 }
+
+// Payment Types
+export interface PaymentRequest {
+  amount: string; // Amount in USDC (e.g., "1.50")
+  recipient: string; // Wallet address
+  description: string;
+  metadata?: Record<string, any>;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  transactionHash?: string;
+  error?: string;
+  receipt?: any;
+}
+
+export interface PremiumFeature {
+  id: string;
+  name: string;
+  description: string;
+  price: string; // Price in USDC
+  enabled: boolean;
+}
