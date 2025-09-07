@@ -18,7 +18,8 @@ import {
   Clock,
   Target,
   Zap,
-  Heart
+  Heart,
+  X
 } from 'lucide-react';
 import { 
   SymptomLog, 
@@ -30,6 +31,7 @@ import {
 } from '@/lib/types';
 import { healthStorage } from '@/lib/storage';
 import { generateId, formatDate, formatTime, getSeverityColor, getSeverityValue, calculateTrend } from '@/lib/utils';
+import { HealthSummaryGenerator, farcasterAPI, baseAPI, ipfsStorage } from '@/lib/api';
 
 export default function HealthSyncApp() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -165,6 +167,61 @@ export default function HealthSyncApp() {
     } catch (error) {
       console.error('Failed to upload file:', error);
       showNotification('error', 'Error', 'Failed to upload file');
+    }
+  };
+
+  const generateHealthSummary = async () => {
+    try {
+      const dateRange = {
+        start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+        end: new Date()
+      };
+
+      const summary = HealthSummaryGenerator.generateSummary(
+        userId,
+        symptoms,
+        reminders,
+        records,
+        dateRange
+      );
+
+      // Upload summary to IPFS for decentralized storage
+      const ipfsHash = await ipfsStorage.uploadJSON(summary);
+      
+      if (ipfsHash) {
+        showNotification('success', 'Summary Generated', `Health summary created and stored on IPFS: ${ipfsHash.slice(0, 12)}...`);
+        
+        // Optionally share to Farcaster
+        const shareText = `📊 My health summary for the last 30 days:\n• ${summary.symptoms.length} symptoms tracked\n• ${summary.medications.length} medications\n• ${summary.keyInsights.length} insights generated\n\nManaging my health with HealthSync 💊`;
+        
+        await farcasterAPI.shareHealthSummary(summary, shareText);
+      } else {
+        showNotification('error', 'Error', 'Failed to generate health summary');
+      }
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+      showNotification('error', 'Error', 'Failed to generate health summary');
+    }
+  };
+
+  const connectWallet = async () => {
+    try {
+      const walletAddress = await baseAPI.connectWallet();
+      if (walletAddress) {
+        showNotification('success', 'Wallet Connected', `Connected to Base wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`);
+        
+        // Authenticate with Farcaster
+        const user = await farcasterAPI.authenticateUser(walletAddress);
+        if (user) {
+          await healthStorage.saveUser(user);
+          showNotification('success', 'Farcaster Connected', 'Successfully authenticated with Farcaster');
+        }
+      } else {
+        showNotification('error', 'Connection Failed', 'Failed to connect wallet');
+      }
+    } catch (error) {
+      console.error('Wallet connection failed:', error);
+      showNotification('error', 'Connection Failed', 'Failed to connect to Base wallet');
     }
   };
 
@@ -641,10 +698,22 @@ export default function HealthSyncApp() {
           <h2 className="text-2xl font-bold text-textPrimary">Health Summary</h2>
           <p className="text-textSecondary">Share your health information with providers</p>
         </div>
-        <button className="btn-primary flex items-center space-x-2">
-          <Share2 className="w-4 h-4" />
-          <span>Generate Summary</span>
-        </button>
+        <div className="flex space-x-3">
+          <button 
+            onClick={connectWallet}
+            className="btn-secondary flex items-center space-x-2"
+          >
+            <Zap className="w-4 h-4" />
+            <span>Connect Wallet</span>
+          </button>
+          <button 
+            onClick={generateHealthSummary}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Generate Summary</span>
+          </button>
+        </div>
       </div>
 
       <div className="glass-card p-6 rounded-lg">
@@ -686,14 +755,52 @@ export default function HealthSyncApp() {
 
       <div className="glass-card p-6 rounded-lg">
         <h3 className="text-lg font-semibold text-textPrimary mb-4">Share Options</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="font-medium text-textPrimary mb-1">Generate PDF Report</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button 
+            onClick={generateHealthSummary}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+          >
+            <div className="font-medium text-textPrimary mb-1">📊 Generate PDF Report</div>
             <div className="text-sm text-textSecondary">Create a comprehensive health summary</div>
           </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="font-medium text-textPrimary mb-1">Share Link</div>
+          <button 
+            onClick={async () => {
+              const summary = HealthSummaryGenerator.generateSummary(
+                userId,
+                symptoms,
+                reminders,
+                records,
+                { start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), end: new Date() }
+              );
+              const ipfsHash = await ipfsStorage.uploadJSON(summary);
+              if (ipfsHash) {
+                navigator.clipboard.writeText(ipfsStorage.getFileUrl(ipfsHash));
+                showNotification('success', 'Link Copied', 'Shareable link copied to clipboard');
+              }
+            }}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+          >
+            <div className="font-medium text-textPrimary mb-1">🔗 Share Link</div>
             <div className="text-sm text-textSecondary">Create a secure shareable link</div>
+          </button>
+          <button 
+            onClick={async () => {
+              const summary = HealthSummaryGenerator.generateSummary(
+                userId,
+                symptoms,
+                reminders,
+                records,
+                { start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), end: new Date() }
+              );
+              const nftHash = await baseAPI.createHealthNFT(summary);
+              if (nftHash) {
+                showNotification('success', 'NFT Created', `Health NFT minted on Base: ${nftHash.slice(0, 8)}...`);
+              }
+            }}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+          >
+            <div className="font-medium text-textPrimary mb-1">🎨 Create Health NFT</div>
+            <div className="text-sm text-textSecondary">Mint your health data as an NFT on Base</div>
           </button>
         </div>
       </div>
