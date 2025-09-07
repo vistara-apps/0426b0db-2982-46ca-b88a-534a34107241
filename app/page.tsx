@@ -18,7 +18,8 @@ import {
   Clock,
   Target,
   Zap,
-  Heart
+  Heart,
+  X
 } from 'lucide-react';
 import { 
   SymptomLog, 

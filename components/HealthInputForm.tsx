@@ -4,11 +4,19 @@ import { useState } from 'react';
 import { Plus, Clock, Pill, Calendar, Activity } from 'lucide-react';
 import { SymptomFormData, ReminderFormData } from '@/lib/types';
 
-interface HealthInputFormProps {
-  variant: 'symptom' | 'medication' | 'appointment';
-  onSubmit: (data: SymptomFormData | ReminderFormData) => void;
+interface SymptomFormProps {
+  variant: 'symptom';
+  onSubmit: (data: SymptomFormData) => void;
   onCancel?: () => void;
 }
+
+interface ReminderFormProps {
+  variant: 'medication' | 'appointment';
+  onSubmit: (data: ReminderFormData) => void;
+  onCancel?: () => void;
+}
+
+type HealthInputFormProps = SymptomFormProps | ReminderFormProps;
 
 export function HealthInputForm({ variant, onSubmit, onCancel }: HealthInputFormProps) {
   const [symptomData, setSymptomData] = useState<SymptomFormData>({
@@ -32,7 +40,9 @@ export function HealthInputForm({ variant, onSubmit, onCancel }: HealthInputForm
   const handleSymptomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!symptomData.symptom.trim()) return;
-    onSubmit(symptomData);
+    if (variant === 'symptom') {
+      (onSubmit as (data: SymptomFormData) => void)(symptomData);
+    }
     setSymptomData({
       symptom: '',
       severity: 'low',
@@ -45,7 +55,9 @@ export function HealthInputForm({ variant, onSubmit, onCancel }: HealthInputForm
   const handleReminderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reminderData.title.trim() || !reminderData.time) return;
-    onSubmit(reminderData);
+    if (variant === 'medication' || variant === 'appointment') {
+      (onSubmit as (data: ReminderFormData) => void)(reminderData);
+    }
     setReminderData({
       type: variant === 'medication' ? 'medication' : 'appointment',
       title: '',
