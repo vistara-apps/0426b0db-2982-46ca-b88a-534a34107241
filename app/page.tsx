@@ -248,17 +248,17 @@ export default function HealthSyncApp() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <button
           onClick={() => setShowSymptomForm(true)}
-          className="glass-card p-6 rounded-lg hover:shadow-lg transition-all duration-200 text-left group"
+          className="glass-card-interactive p-6 md:p-6 py-8 md:py-6 rounded-lg hover:shadow-cardHover transition-all duration-200 text-left group focus-ring min-h-[80px] md:min-h-0"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="w-14 h-14 md:w-12 md:h-12 bg-gradient-to-r from-error-500 to-error-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Activity className="w-7 h-7 md:w-6 md:h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-textPrimary">Log Symptom</h3>
+              <h3 className="font-semibold text-textPrimary text-lg md:text-base">Log Symptom</h3>
               <p className="text-sm text-textSecondary">Track how you're feeling</p>
             </div>
           </div>
@@ -269,26 +269,26 @@ export default function HealthSyncApp() {
             setReminderType('medication');
             setShowReminderForm(true);
           }}
-          className="glass-card p-6 rounded-lg hover:shadow-lg transition-all duration-200 text-left group"
+          className="glass-card-interactive p-6 md:p-6 py-8 md:py-6 rounded-lg hover:shadow-cardHover transition-all duration-200 text-left group focus-ring min-h-[80px] md:min-h-0"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Bell className="w-6 h-6 text-white" />
+            <div className="w-14 h-14 md:w-12 md:h-12 bg-gradient-to-r from-info-500 to-info-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Bell className="w-7 h-7 md:w-6 md:h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-textPrimary">Set Reminder</h3>
+              <h3 className="font-semibold text-textPrimary text-lg md:text-base">Set Reminder</h3>
               <p className="text-sm text-textSecondary">Never miss medications</p>
             </div>
           </div>
         </button>
 
-        <label className="glass-card p-6 rounded-lg hover:shadow-lg transition-all duration-200 text-left group cursor-pointer">
+        <label className="glass-card-interactive p-6 md:p-6 py-8 md:py-6 rounded-lg hover:shadow-cardHover transition-all duration-200 text-left group cursor-pointer focus-ring min-h-[80px] md:min-h-0">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Upload className="w-6 h-6 text-white" />
+            <div className="w-14 h-14 md:w-12 md:h-12 bg-gradient-to-r from-accent-500 to-accent-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Upload className="w-7 h-7 md:w-6 md:h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-textPrimary">Upload Record</h3>
+              <h3 className="font-semibold text-textPrimary text-lg md:text-base">Upload Record</h3>
               <p className="text-sm text-textSecondary">Store health documents</p>
             </div>
           </div>
@@ -297,6 +297,7 @@ export default function HealthSyncApp() {
             onChange={handleFileUpload}
             className="hidden"
             accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            aria-label="Upload health record file"
           />
         </label>
       </div>
@@ -730,6 +731,53 @@ export default function HealthSyncApp() {
         </div>
       )}
       {renderContent()}
+
+      {/* Mobile Floating Action Button */}
+      <div className="fixed bottom-6 right-6 md:hidden z-40">
+        <div className="relative">
+          <button
+            onClick={() => setShowSymptomForm(true)}
+            className="w-14 h-14 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center focus-ring"
+            aria-label="Quick log symptom"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+          
+          {/* Quick action tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-textPrimary text-white text-xs rounded-lg opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
+            Log Symptom
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Quick Actions Menu - Alternative approach */}
+      {activeTab === 'dashboard' && (
+        <div className="fixed bottom-20 right-6 md:hidden z-30">
+          <div className="flex flex-col space-y-3">
+            <button
+              onClick={() => {
+                setReminderType('medication');
+                setShowReminderForm(true);
+              }}
+              className="w-12 h-12 bg-gradient-to-r from-info-500 to-info-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center focus-ring"
+              aria-label="Set medication reminder"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+            
+            <label className="w-12 h-12 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center cursor-pointer focus-ring">
+              <Upload className="w-5 h-5" />
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                aria-label="Upload health record"
+              />
+            </label>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

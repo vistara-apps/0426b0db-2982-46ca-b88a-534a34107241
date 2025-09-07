@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useMemo, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Area, AreaChart } from 'recharts';
 import { TrendData, ChartDataPoint } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
+import { TrendingUp, TrendingDown, Minus, Eye, EyeOff } from 'lucide-react';
 
 interface TimelineChartProps {
   data: TrendData[];
@@ -11,7 +12,49 @@ interface TimelineChartProps {
   height?: number;
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  variant: 'symptom-severity' | 'symptom-frequency';
+}
+
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label, variant }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="glass-card p-4 rounded-lg shadow-lg border border-white/20 animate-fadeIn">
+        <p className="font-medium text-textPrimary mb-2">
+          {format(parseISO(label || ''), 'MMM dd, yyyy')}
+        </p>
+        <div className="space-y-2">
+          {payload.map((entry, index) => (
+            <div key={index} className="flex items-center justify-between space-x-3">
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-sm text-textSecondary">{entry.dataKey}</span>
+              </div>
+              <span className="font-medium text-textPrimary">
+                {variant === 'symptom-severity' ? `${entry.value}/3` : entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function TimelineChart({ data, variant, height = 300 }: TimelineChartProps) {
+  const [visibleSymptoms, setVisibleSymptoms] = useState<Record<string, boolean>>(
+    data.reduce((acc, trend) => ({ ...acc, [trend.symptom]: true }), {})
+  );
+  const [chartType, setChartType] = useState<'line' | 'area' | 'bar'>('line');
+
   const chartData = useMemo(() => {
     if (!data.length) return [];
 
@@ -19,13 +62,15 @@ export function TimelineChart({ data, variant, height = 300 }: TimelineChartProp
     const allPoints: (ChartDataPoint & { symptom: string; color: string })[] = [];
     
     data.forEach(trend => {
-      trend.data.forEach(point => {
-        allPoints.push({
-          ...point,
-          symptom: trend.symptom,
-          color: trend.color
+      if (visibleSymptoms[trend.symptom]) {
+        trend.data.forEach(point => {
+          allPoints.push({
+            ...point,
+            symptom: trend.symptom,
+            color: trend.color
+          });
         });
-      });
+      }
     });
 
     // Group by date
@@ -43,7 +88,27 @@ export function TimelineChart({ data, variant, height = 300 }: TimelineChartProp
     return Object.values(groupedByDate).sort((a: any, b: any) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-  }, [data]);
+  }, [data, visibleSymptoms]);
+
+  const toggleSymptomVisibility = (symptom: string) => {
+    setVisibleSymptoms(prev => ({
+      ...prev,
+      [symptom]: !prev[symptom]
+    }));
+  };
+
+  const getTrendDirection = (symptomData: TrendData) => {
+    if (symptomData.data.length < 2) return 'stable';
+    const recent = symptomData.data.slice(-3);
+    const avg = recent.reduce((sum, point) => sum + point.value, 0) / recent.length;
+    const earlier = symptomData.data.slice(-6, -3);
+    if (earlier.length === 0) return 'stable';
+    const earlierAvg = earlier.reduce((sum, point) => sum + point.value, 0) / earlier.length;
+    
+    if (avg > earlierAvg * 1.1) return 'increasing';
+    if (avg < earlierAvg * 0.9) return 'decreasing';
+    return 'stable';
+  };
 
   const formatXAxisLabel = (dateStr: string) => {
     try {
