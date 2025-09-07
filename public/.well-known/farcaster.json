@@ -1,0 +1,30 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "HealthSync",
+    "subtitle": "Built with Zara",
+    "description": "HealthSync is a Base Mini App built with Zara.",
+    "iconUrl": "https://0co.to/images/zara-2.png",
+    "homeUrl": "https://0426b0db298246cab88a534a34107241-vp71.vercel.app",
+    "splashImageUrl": "https://0426b0db298246cab88a534a34107241-vp71.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "heroImageUrl": "https://0426b0db298246cab88a534a34107241-vp71.vercel.app/image.png",
+    "tagline": "HealthSync",
+    "screenshotUrls": [
+      "https://0426b0db298246cab88a534a34107241-vp71.vercel.app/screenshot.png",
+      "https://0426b0db298246cab88a534a34107241-vp71.vercel.app/screenshot.png"
+    ],
+    "primaryCategory": "social",
+    "tags": [
+      "base",
+      "miniapp",
+      "onchainkit"
+    ],
+    "webhookUrl": "https://0426b0db298246cab88a534a34107241-vp71.vercel.app/api/webhook"
+  }
+}
