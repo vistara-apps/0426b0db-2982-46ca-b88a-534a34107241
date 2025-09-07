@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: 'Track symptoms, manage medications, store health records, and share summaries with your healthcare providers.',
   keywords: 'health, symptoms, medication, tracking, Base, miniapp',
   authors: [{ name: 'HealthSync Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
